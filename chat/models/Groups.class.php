@@ -107,7 +107,7 @@ class extChatModelGroups
             return false;
         }
         $items =  [];
-        $dataSQL = DB::getDB()->query("SELECT * FROM ext_chat_msg WHERE group_id = ".(int)$id." ORDER BY time" );
+        $dataSQL = DB::getDB()->query("SELECT * FROM ext_chat_msg WHERE group_id = ".(int)$id." ORDER BY timeCreate" );
         while ($data = DB::getDB()->fetch_array($dataSQL, true)) {
             $items[] = new extChatModelChat($data);
         }
@@ -125,7 +125,7 @@ class extChatModelGroups
 
         $user = DB::getSession()->getUser();
 
-        $orderBy = 'b.lastMsgTime';
+        $orderBy = 'b.lastMsgTime, b.id DESC';
         $where = ' WHERE a.userChat_id = "'.$user->getUserID().'"';
         if ($status) {
             $where .= 'b.status = "'.$status.'"';
@@ -154,9 +154,9 @@ class extChatModelGroups
 
         $user = DB::getSession()->getUser();
 
-        $where = ' WHERE a.id = '.$id.' AND a.userChat_id = "'.$user->getUserID().'"';
+        $where = ' WHERE a.group_id = '.$id.' AND a.userChat_id = "'.$user->getUserID().'"';
 
-        $dataSQL = DB::getDB()->query("SELECT a.userChat_id , b.id, b.title, b.lastMsgTime, b.status
+        $dataSQL = DB::getDB()->query("SELECT a.userChat_id , b.id, b.title, b.lastMsgtime, b.status
             FROM ext_chat_groups_member as a
 			LEFT JOIN ext_chat_groups AS b ON a.group_id LIKE b.id 
 			".$where);
@@ -168,5 +168,52 @@ class extChatModelGroups
 
     }
 
+
+    public static function setGroup($data) {
+
+        if (!$data['title']) {
+            return false;
+        }
+        $user = DB::getSession()->getUser();
+        if (!$user->getUserID()) {
+            return false;
+        }
+        $data = [
+            "title" => DB::getDB()->escapeString($data['title']),
+            "status" => (int)DB::getDB()->escapeString($data['status']),
+            "id" => (int)DB::getDB()->escapeString($data['id'])
+        ];
+
+        if ($data['id']) {
+            if ( DB::getDB()->query("UPDATE ext_chat_groups SET 
+                           title='".$data['title']."', 
+                           status='".$data['status']."'
+                           WHERE id = ".$data['id']) ) {
+                //$obj = new extChatModelGroups($data);
+                //return $obj->getCollection();
+                return $data;
+            }
+        } else {
+            if ( DB::getDB()->query("INSERT INTO ext_chat_groups
+                (
+                    id,
+                    title,
+                    status
+                )
+                values(
+                    ".$data['id'].",
+                    '".$data['title']."',
+                    ".$data['status']."
+                )") ) {
+                $data['id'] = DB::getDB()->insert_id();
+                //$obj = new extChatModelGroups($data);
+                //return $obj->getCollection();
+                return $data;
+            }
+        }
+
+        return false;
+
+    }
 
 }

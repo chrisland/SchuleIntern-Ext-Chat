@@ -19,18 +19,20 @@ class getGroup extends AbstractRest {
         include_once PATH_EXTENSION . 'models' . DS . 'Member.class.php';
         include_once PATH_EXTENSION . 'models' . DS . 'Groups.class.php';
 
-
         $item = extChatModelGroups::getMyByID($group_id);
 
+        if ($item) {
+            $ret = [
+                "id" => $item->getID(),
+                "title" => $item->getTitle(),
+                "lastMsgTime" => $item->getLastMsgTime(),
+                "members" => $item->getMembersCollection(),
+                "chat" => $item->getChatCollection()
+            ];
+        } else {
+            return [];
+        }
 
-
-        $ret = [
-            "id" => $item->getID(),
-            "title" => $item->getTitle(),
-            "lastMsgTime" => $item->getLastMsgTime(),
-            "members" => $item->getMembersCollection(),
-            "chat" => $item->getChatCollection()
-        ];
 
 /*
         echo '<pre>';

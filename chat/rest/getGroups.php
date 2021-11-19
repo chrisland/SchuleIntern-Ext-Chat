@@ -7,7 +7,8 @@ class getGroups extends AbstractRest {
 
 	public function execute($input, $request) {
 
-        //include_once PATH_EXTENSION . 'models' . DS . 'Slot.class.php';
+        include_once PATH_EXTENSION . 'models' . DS . 'Chat.class.php';
+        include_once PATH_EXTENSION . 'models' . DS . 'Member.class.php';
         include_once PATH_EXTENSION . 'models' . DS . 'Groups.class.php';
 
         $ret = [];

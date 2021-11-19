@@ -1,25 +1,34 @@
-CREATE TABLE IF NOT EXISTS `ext_chat_group` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-    `title` varchar(100) DEFAULT NULL,
-    `member_id` varchar(100) DEFAULT NULL,
-   PRIMARY KEY (`id`)
+
+DROP TABLE IF EXISTS `ext_chat_groups`;
+
+CREATE TABLE `ext_chat_groups` (
+                                   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                                   `status` tinyint(4) DEFAULT NULL,
+                                   `title` varchar(100) DEFAULT NULL,
+                                   `lastMsgTime` int(11) DEFAULT NULL,
+                                   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE IF NOT EXISTS `ext_chat_group_member` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-    `group_id` int(11) DEFAULT NULL,
-    `userChat_id` varchar(100) DEFAULT NULL,
-    PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `ext_chat_groups_member`;
 
-CREATE TABLE IF NOT EXISTS `ext_chat_msg` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-    `group_id` int(11) DEFAULT NULL,
-    `from` varchar(100) DEFAULT NULL,
-    `to` varchar(100) DEFAULT NULL,
-    `msg` varchar(1000) DEFAULT NULL,
-   PRIMARY KEY (`id`)
+CREATE TABLE `ext_chat_groups_member` (
+                                          `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                                          `group_id` int(11) DEFAULT NULL,
+                                          `userChat_id` varchar(100) DEFAULT NULL,
+                                          PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
+
+DROP TABLE IF EXISTS `ext_chat_msg`;
+
+CREATE TABLE `ext_chat_msg` (
+                                `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                                `group_id` int(11) DEFAULT NULL,
+                                `from` varchar(100) DEFAULT NULL,
+                                `msg` varchar(1000) DEFAULT NULL,
+                                `time` int(11) DEFAULT NULL,
+                                PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

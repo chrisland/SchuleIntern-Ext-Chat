@@ -1,0 +1,1 @@
+"use strict";self.webpackHotUpdateextensions(179,{941:(t,e,n)=>{n.d(e,{Z:()=>o});const o={components:{User:n(1398).Z},data:function(){return{}},props:{form:Object},created:function(){},methods:{handlerSubmit:function(){this.$emit("formSubmitGroup",this.form)}}}}},(function(t){t.h=()=>"cc5dafabe71a8ab1166c"}));

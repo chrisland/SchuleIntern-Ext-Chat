@@ -7,7 +7,7 @@
 
   "menu": {
     "categorie": "1",
-    "icon": "fa fas fa-plug",
+    "icon": "fas fa-comments",
     "params": ""
   },
 
@@ -17,7 +17,7 @@
   "submenu": [
     {
       "title": "Default",
-      "icon": "fa fa-cogs",
+      "icon": "fas fa-comments",
       "url": {
         "page": "ext_example",
         "params": {}

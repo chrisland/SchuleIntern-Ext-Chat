@@ -1,45 +1,20 @@
 <template>
-  <div>
+  <div class="ext_chat">
 
     <Error v-bind:error="error"></Error>
     <Spinner v-bind:loading="loading"></Spinner>
 
+    <Groups v-if="route == 'groups'" @loadGroup="handlerLoadGroup" @showGroupForm="handlerShowFormGroup" v-bind:groups="groups"></Groups>
 
+    <FormGroups v-if="route == 'form'" @formSubmitGroup="handlerSubmitFormGroup" @close="handlerFormClose" v-bind:form="groupForm"></FormGroups>
 
-    <ul>
-      <li v-bind:key="index" v-for="(item, index) in  groups" class="">
-        <a v-on:click="handlerGroupOpen(item)">{{item.title}}</a>
-      </li>
-    </ul>
-
-    <div v-if="group">
-
-      <h2>{{group.title}}</h2>
-
-      {{group.members}}
-
-      <ul>
-        <li v-bind:key="index" v-for="(item, index) in  group.members" class="">
-          <User v-bind:data="item"></User>
-        </li>
-      </ul>
-
-
-      <br>
-
-      {{group.chat}}
-      <ul>
-        <li v-bind:key="index" v-for="(item, index) in  group.chat" class="">
-          <div class="">{{item.msg}}</div>
-          <div class="">{{item.time}}</div>
-          <div class="">{{item.from}}</div>
-          <User v-bind:data="item.from"></User>
-        </li>
-      </ul>
-
-      <input v-model="form.msg" type="text" />
-      <button class="si-btn">Send</button>
-    </div>
+    <Chat v-if="group && route == 'chat'"
+          @close="handlerChatClose"
+          @submit="handlerChatSubmit"
+          @form="handlerShowFormGroup"
+          v-bind:group="group"
+          v-bind:form="form"
+          v-bind:loading="loading"></Chat>
 
   </div>
 </template>
@@ -48,16 +23,19 @@
 
 const axios = require('axios').default;
 
-import User from './mixins/User.vue'
+
 import Error from './mixins/Error.vue'
 import Spinner from './mixins/Spinner.vue'
 
-import Modal from './mixins/Modal.vue'
+import Groups from './components/Groups.vue'
+import FormGroups from './components/FormGroups.vue'
+import Chat from './components/Chat.vue'
 
 
 export default {
   components: {
-    Error, Spinner, User, Modal
+    Groups, Chat, FormGroups,
+    Error, Spinner
   },
   data() {
     return {
@@ -65,13 +43,18 @@ export default {
       error: false,
       loading: false,
 
+      route: 'groups',
+
       groups: false, // from AJAX
 
       group: false, // from User,
 
       form: {
         msg: ''
-      }
+      },
+
+      groupForm: false
+
     };
   },
   created: function () {
@@ -80,71 +63,47 @@ export default {
 
   },
   mounted() {
-/*
-    EventBus.$on('item-submit', data => {
-      //console.log(data)
 
-      const formData = new FormData();
-      formData.append('id', data.id);
-      formData.append('einheiten', data.einheiten);
-
-      this.loading = true;
-      var that = this;
-      axios.post( this.apiURL+'/orderSlot', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        })
-        .then(function(response){
-          if ( response.data ) {
-            //that.list = response.data;
-            //console.log(response.data.error);
-            if (response.data.error == false) {
-              that.loadGroups();
-              that.selectedItem = false;
-            } else {
-              that.error = ''+response.data.msg;
-            }
-          } else {
-            that.error = 'Fehler beim Laden. 01';
-          }
-        })
-        .catch(function(){
-          that.error = 'Fehler beim Laden. 02';
-        })
-        .finally(function () {
-          // always executed
-          that.loading = false;
-        });
-
-    });
-*/
   },
   methods: {
 
-    handlerGroupOpen: function (item) {
+    handlerSubmitFormGroup: function (obj) {
 
-      if (!item.id) {
+console.log(obj);
+
+      if ( !obj.title ) {
         return false;
       }
-      //console.log(item);
-      this.group = false;
-      this.group = item;
-      this.loadGroup(item);
+      const formData = new FormData();
+      formData.append('title', obj.title);
+      formData.append('group_id', obj.id);
 
-    },
-    loadGroup: function (item) {
+      let members = [];
+      obj.members.map(function (o,i) {
+        members.push( o.id );
+      })
 
-      if (!item.id) {
-        return false;
-      }
+      formData.append('members', JSON.stringify(members) );
+
       this.loading = true;
       var that = this;
-      axios.get( this.apiURL+'/getGroup/'+item.id)
+      axios.post( this.apiURL+'/setGroup/'+obj.id, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
       .then(function(response){
         if ( response.data ) {
-          if (!response.data.error) {
-            that.group = response.data;
+          //that.list = response.data;
+          //console.log(response.data.error);
+          if (response.data.error == false) {
+            //console.log(response.data);
+            //that.route = 'chat';
+            //that.loadGroups(false);
+            console.log('submit done');
+            that.handlerLoadGroup(that.group);
+
+
           } else {
             that.error = ''+response.data.msg;
           }
@@ -161,7 +120,43 @@ export default {
       });
 
     },
-    loadGroups: function () {
+
+    handlerShowFormGroup: function (obj) {
+      this.groupForm = obj;
+      this.route = 'form';
+    },
+
+    handlerLoadGroup: function (item) {
+
+      if (!item.id) {
+        return false;
+      }
+      this.loading = true;
+      var that = this;
+      axios.get( this.apiURL+'/getGroup/'+item.id)
+      .then(function(response){
+        if ( response.data ) {
+          if (!response.data.error) {
+            that.group = response.data;
+            that.route = 'chat';
+            console.log('---chat');
+          } else {
+            that.error = ''+response.data.msg;
+          }
+        } else {
+          that.error = 'Fehler beim Laden. 01';
+        }
+      })
+      .catch(function(){
+        that.error = 'Fehler beim Laden. 02';
+      })
+      .finally(function () {
+        // always executed
+        that.loading = false;
+      });
+
+    },
+    loadGroups: function (pageSwitch = true) {
 
       this.loading = true;
       var that = this;
@@ -170,6 +165,9 @@ export default {
             if ( response.data ) {
               if (!response.data.error) {
                 that.groups = response.data;
+                if (pageSwitch) {
+                  that.route = 'groups';
+                }
               } else {
                 that.error = ''+response.data.msg;
               }
@@ -185,12 +183,96 @@ export default {
             that.loading = false;
           });
 
+    },
+    handlerChatSubmit: function (form) {
+
+      if (!this.group.id || !form.msg) {
+        return false;
+      }
+      const formData = new FormData();
+      formData.append('group_id', this.group.id);
+      formData.append('msg', form.msg);
+
+      this.loading = true;
+      var that = this;
+      axios.post( this.apiURL+'/setMsg', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      .then(function(response){
+        if ( response.data ) {
+          //that.list = response.data;
+          //console.log(response.data.error);
+          if (response.data.error == false) {
+
+            if (response.data.msgObj) {
+              that.form = {
+                msg: ''
+              };
+              that.group.chat.push(response.data.msgObj);
+            }
+          } else {
+            that.error = ''+response.data.msg;
+          }
+        } else {
+          that.error = 'Fehler beim Laden. 01';
+        }
+      })
+      .catch(function(){
+        that.error = 'Fehler beim Laden. 02';
+      })
+      .finally(function () {
+        // always executed
+        that.loading = false;
+      });
+
+    },
+    handlerChatClose: function () {
+      this.route = 'groups';
+      this.group = false;
+    },
+    handlerFormClose: function () {
+      if (this.group) {
+        this.handlerLoadGroup(this.group)
+      } else {
+        this.route = 'groups';
+      }
+
     }
+
   }
 
 };
 </script>
 
-<style>
+<style >
 
+.ext_chat {
+  margin-top: 3rem;
+  margin-left: 20vw;
+  background-color: #fff;
+  max-width: 40vw;
+  border-radius: 3rem;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+  min-height: 70vh;
+}
+.ext_chat .header {
+  height: 5rem;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 10px 70px 0px;
+  border-top-left-radius: 3rem;
+  border-top-right-radius: 3rem;
+  display: flex;
+}
+.ext_chat .header .title {
+  font-size: 160%;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-self: center;
+}
+.ext_chat .footer {
+  height: 5rem;
+  display: flex;
+}
 </style>

@@ -3,7 +3,7 @@
 class extChatDefault extends AbstractPage {
 	
 	public static function getSiteDisplayName() {
-		return 'Chat - Default';
+		return '<i class="fas fa-comments"></i> Chat - Default';
 	}
 
 	public function __construct($request = [], $extension = []) {
@@ -24,7 +24,8 @@ class extChatDefault extends AbstractPage {
             "data" => [
                 "apiURL" => "rest.php/chat",
                 "acl" => json_encode( $this->getAcl() )
-            ]
+            ],
+            "submenu" => false
         ]);
 
 	}
