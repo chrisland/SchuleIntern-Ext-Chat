@@ -1,1 +1,0 @@
-"use strict";self.webpackHotUpdateextensions(179,{5939:(e,n,t)=>{var u=t(1931),a=t(7828);window.EventBus=new u.default,u.default.config.productionTip=!1,new u.default({el:"#app",render:function(e){return e(a.Z)}})}},(function(e){e.h=()=>"86490e3c0e91d40785a4"}));

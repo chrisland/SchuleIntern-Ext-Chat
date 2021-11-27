@@ -135,8 +135,8 @@ class extChatModelGroups
         $dataSQL = DB::getDB()->query("SELECT a.userChat_id , b.id, b.title, b.lastMsgTime, b.status
             FROM ext_chat_groups_member as a
 			LEFT JOIN ext_chat_groups AS b ON a.group_id LIKE b.id 
-
-			".$where." ORDER BY ".$orderBy);
+            
+			".$where." GROUP BY b.id ORDER BY ".$orderBy. " ");
 
 
         //$dataSQL = DB::getDB()->query("SELECT * FROM ext_chat_groups ".$where);

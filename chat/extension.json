@@ -19,7 +19,7 @@
       "title": "Default",
       "icon": "fas fa-comments",
       "url": {
-        "page": "ext_example",
+        "page": "ext_chat",
         "params": {}
       }
     }

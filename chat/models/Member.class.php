@@ -59,7 +59,8 @@ class extChatModelMember
                 "id" => $this->getID(),
                 "vorname" => $this->getUser()->getFirstName(),
                 "nachname" => $this->getUser()->getLastName(),
-                "name" => $this->getUser()->getDisplayName()
+                "name" => $this->getUser()->getDisplayName(),
+                "type" => $this->getUser()->getUserTyp(true)
             ];
             return $collection;
         }
