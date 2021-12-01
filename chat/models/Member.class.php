@@ -67,97 +67,77 @@ class extChatModelMember
 
     }
 
-/*
-    public static function setMember($data) {
 
-        if (!$data['group_id']) {
-            return false;
-        }
-        $user = DB::getSession()->getUser();
-        if (!$user->getUserID()) {
-            return false;
-        }
-        $data = [
-            "group_id" => DB::getDB()->escapeString($data['group_id']),
-            "userChat_id" => $user->getUserID()
-        ];
-        if ( DB::getDB()->query("INSERT INTO ext_chat_groups_member
-                (
-                    group_id,
-                    userChat_id
-                )
-                values(
-                    ".$data['group_id'].",
-                    ".$data['userChat_id']."
-                )") ) {
-            $data['id'] = DB::getDB()->insert_id();
-            //$obj = new self($data);
-            //return $obj->getCollection();
-            return $data;
-        }
-        return false;
-
-    }
-    */
-
-
-    public static  function isGroupMember($group_id, $user_id) {
-
-        if (!$group_id || !$user_id) {
-            return false;
-        }
-
-        $where = ' WHERE a.group_id = '.(int)$group_id.' AND a.userChat_id = '.(int)$user_id.' ';
-
-        $dataSQL = DB::getDB()->query_first("SELECT a.id FROM ext_chat_groups_member as a ".$where);
-
-        if ($dataSQL['id']) {
-            return $dataSQL['id'];
-        }
-        return false;
-
-    }
-
-
-    public static function toggleMembers($group_id, $users) {
+    public function removeGroup($group_id) {
 
         if (!$group_id) {
             return false;
         }
-
-        foreach ($users as $user_id) {
-
-            $data = [
-                "group_id" => $group_id,
-                "userChat_id" => $user_id
-            ];
-
-            if ( $groupMemberID = self::isGroupMember($group_id, $user_id ) ) {
-
-            } else {
-                // Add Member
-                if ( DB::getDB()->query("INSERT INTO ext_chat_groups_member
-                (
-                    group_id,
-                    userChat_id
-                )
-                values(
-                    ".$data['group_id'].",
-                    ".$data['userChat_id']."
-                )") ) {
-                    $data['id'] = DB::getDB()->insert_id();
-                    return $data;
-                }
-            }
-
-
-
+        if (!$this->getID()) {
+            return false;
         }
-
+        if ( DB::getDB()->query("DELETE FROM ext_chat_groups_member WHERE user_id=".(int)$this->getID()." AND group_id=".(int)$group_id) ) {
+            return true;
+        }
         return false;
-
     }
 
+    public function addGroup($group_id) {
 
+        if (!$group_id) {
+            return false;
+        }
+        if (!$this->getID()) {
+            return false;
+        }
+        if ( DB::getDB()->query("INSERT INTO ext_chat_groups_member
+                (
+                    group_id,
+                    user_id
+                )
+                values(
+                    ".(int)$group_id.",
+                    ".(int)$this->getID()."
+                )") ) {
+            return true;
+        }
+        return false;
+    }
+
+    public function setUnread($msg) {
+        if (!$msg->getGroupID()) {
+            return false;
+        }
+        if (!$this->getID()) {
+            return false;
+        }
+
+        // Nicht beim Ersteller!
+        if ($this->getID() == $msg->getUserID()) {
+            return false;
+        }
+
+        if ( DB::getDB()->query("UPDATE ext_chat_groups_member SET unread = unread + 1
+                           WHERE group_id = ".$msg->getGroupID()." AND user_id= ".$this->getID()) ) {
+            return true;
+        }
+        return false;
+    }
+
+    public function unsetUnread($group_id, $int = 0) {
+
+        if (!$group_id) {
+            return false;
+        }
+        if (!$this->getID()) {
+            return false;
+        }
+
+        if ( DB::getDB()->query("UPDATE ext_chat_groups_member SET unread = ".(int)$int."
+                           WHERE group_id = ".$group_id." AND user_id= ".$this->getID()) ) {
+            return true;
+        }
+        return false;
+    }
 
 }

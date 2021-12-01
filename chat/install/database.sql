@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS `ext_chat_groups_member`;
 CREATE TABLE `ext_chat_groups_member` (
                                           `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
                                           `group_id` int(11) DEFAULT NULL,
-                                          `userChat_id` varchar(100) DEFAULT NULL,
+                                          `user_id` varchar(100) DEFAULT NULL,
                                           PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

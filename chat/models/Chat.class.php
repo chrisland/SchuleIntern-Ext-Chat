@@ -49,30 +49,50 @@ class extChatModelChat
     public function getUserID() {
         return $this->data['user_id'];
     }
+    public function getGroupID() {
+        return $this->data['group_id'];
+    }
     public function getMember() {
         return new extChatModelMember( ["user_id" => $this->data['user_id'] ] );
     }
     public function getMsg() {
         return $this->data['msg'];
     }
+    public function getMsgShort($length = 50) {
+
+        if ($this->getFrom()['name']) {
+            $msg = $this->getFrom()['name'].': '.$this->data['msg'];
+        } else {
+            $msg = $this->data['msg'];
+        }
+        if (strlen($msg) > $length ) {
+            return substr($msg,0, $length).'...';
+        }
+        return $msg;
+
+    }
     public function getTimeCreate() {
         return $this->data['timeCreate'];
     }
-    
+
+
+    public function getFrom() {
+        $user = DB::getSession()->getUser();
+        if ($user->getUserID() && $user->getUserID() == $this->getUserID() ) {
+            return true;
+        } else {
+            return $this->getMember()->getCollection();
+        }
+    }
 
     public function getCollection() {
         $collection = [
             "id" => $this->getID(),
-            "from" => false,
+            "from" => $this->getFrom(),
             "msg" => nl2br((string)$this->getMsg()),
             "timeCreate" => date("d.m.Y H:i", $this->getTimeCreate() )
         ];
-        $user = DB::getSession()->getUser();
-        if ($user->getUserID() && $user->getUserID() == $this->getUserID() ) {
-            $collection['from'] = true;
-        } else {
-            $collection['from'] = $this->getMember()->getCollection();
-        }
+
         return $collection;
     }
 
@@ -84,7 +104,12 @@ class extChatModelChat
         if (!$user->getUserID()) {
             return false;
         }
-        // TODO: ist der User in der Gruppe ?
+
+        $group = new extChatModelGroups(['id' => $data['group_id']]);
+        if (!$group->isMembers($user->getUserID())) {
+            return false;
+        }
+
         $data = [
             "status" => 1,
             "group_id" => (int)DB::getDB()->escapeString($data['group_id']),
@@ -109,10 +134,27 @@ class extChatModelChat
                 )") ) {
             $data['id'] = DB::getDB()->insert_id();
             $msgObj = new extChatModelChat($data);
+            $group->setLastMsg($msgObj);
+            $group->setUnread($msgObj);
             return $msgObj->getCollection();
         }
         return false;
 
     }
 
+
+    public static function getByID($id) {
+
+        if (!(int)$id) {
+            return false;
+        }
+        $user = DB::getSession()->getUser();
+        $where = ' WHERE id = '.(int)$id;
+        $data = DB::getDB()->query_first("SELECT * FROM ext_chat_msg ".$where);
+        if ($data) {
+            return new self($data);
+        }
+        return false;
+
+    }
 }

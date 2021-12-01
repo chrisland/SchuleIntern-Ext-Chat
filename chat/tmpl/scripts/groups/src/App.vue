@@ -6,7 +6,7 @@
 
     <Groups v-if="route == 'groups'" @loadGroup="handlerLoadGroup" @showGroupForm="handlerShowFormGroup" v-bind:groups="groups"></Groups>
 
-    <FormGroups v-if="route == 'form'" @formSubmitGroup="handlerSubmitFormGroup" @close="handlerFormClose" v-bind:form="groupForm"></FormGroups>
+    <FormGroups v-if="route == 'form'" @formSubmitGroup="handlerSubmitFormGroup" @close="handlerFormClose" v-bind:formData="groupForm"></FormGroups>
 
     <Chat v-if="group && route == 'chat'"
           @close="handlerChatClose"
@@ -69,10 +69,11 @@ export default {
 
     handlerSubmitFormGroup: function (obj) {
 
-console.log(obj);
-
       if ( !obj.title ) {
         return false;
+      }
+      if ( !obj.id ) {
+        obj.id = 0;
       }
       const formData = new FormData();
       formData.append('title', obj.title);
@@ -98,11 +99,12 @@ console.log(obj);
           //console.log(response.data.error);
           if (response.data.error == false) {
             //console.log(response.data);
-            //that.route = 'chat';
+            //that.route = 'groups';
             //that.loadGroups(false);
-            console.log('submit done');
-            that.handlerLoadGroup(that.group);
-
+            //console.log('submit done');
+            //that.group = response.data.obj
+            //that.handlerLoadGroup(that.group);
+            that.loadGroups();
 
           } else {
             that.error = ''+response.data.msg;
@@ -161,27 +163,27 @@ console.log(obj);
       this.loading = true;
       var that = this;
       axios.get( this.apiURL+'/getGroups')
-          .then(function(response){
-            if ( response.data ) {
-              if (!response.data.error) {
-                that.groups = response.data;
-                if (pageSwitch) {
-                  that.route = 'groups';
-                }
-              } else {
-                that.error = ''+response.data.msg;
-              }
-            } else {
-              that.error = 'Fehler beim Laden. 01';
+      .then(function(response){
+        if ( response.data ) {
+          if (!response.data.error) {
+            that.groups = response.data;
+            if (pageSwitch) {
+              that.route = 'groups';
             }
-          })
-          .catch(function(){
-            that.error = 'Fehler beim Laden. 02';
-          })
-          .finally(function () {
-            // always executed
-            that.loading = false;
-          });
+          } else {
+            that.error = ''+response.data.msg;
+          }
+        } else {
+          that.error = 'Fehler beim Laden. 01';
+        }
+      })
+      .catch(function(){
+        that.error = 'Fehler beim Laden. 02';
+      })
+      .finally(function () {
+        // always executed
+        that.loading = false;
+      });
 
     },
     handlerChatSubmit: function (form) {
@@ -204,7 +206,7 @@ console.log(obj);
         if ( response.data ) {
           //that.list = response.data;
           //console.log(response.data.error);
-          if (response.data.error == false) {
+          if (response.data.error == false && response.data.msgObj) {
 
             if (response.data.msgObj) {
               that.form = {

@@ -40,33 +40,23 @@ class setGroup extends AbstractRest {
             "status" => 1
         ]) ) {
 
-            if ( extChatModelMember::toggleMembers($group_id, $members) ) {
-                return [
-                    'error' => false,
-                    'obj' => $obj
-                ];
-            }
+            $group = new extChatModelGroups($obj);
 
-            /*
-
-            if ($group_id == false) { // Gruppe ist neu
-                if ( extChatModelMember::setMember([
-                    'group_id' => $obj['id']
-                ]) ) {
-                    return [
-                        'error' => false,
-                        'obj' => $obj
-                    ];
+            // Add user-Self
+            $user = DB::getSession()->getUser();
+            if ($user->getUserID()) {
+                if ( !in_array($user->getUserID(), $members)) {
+                    array_push($members, $user->getUserID() );
                 }
-            } else {
+            }
+
+            // Add group Users
+            if ( $group->setMembers($members) ) {
                 return [
                     'error' => false,
                     'obj' => $obj
                 ];
             }
-            */
-
-
 
         }
 /*

@@ -20,7 +20,9 @@ class getGroups extends AbstractRest {
             $ret[] = [
                 "id" => $item->getID(),
                 "title" => $item->getTitle(),
-                "lastMsgTime" => $item->getLastMsgTime()
+                "lastMsgTime" => $item->getLastMsgTimeHuman(),
+                "lastMsgText" => $item->getLastMsgShort(),
+                "unread" => $item->getUnread()
             ];
 
         }

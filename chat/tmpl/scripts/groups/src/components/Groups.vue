@@ -4,16 +4,23 @@
     <div class="header">
       <button class="si-btn" v-on:click="handlerNew">Neu</button>
     </div>
-    <ul class="list">
+    <ul v-if="groups.length > 0" class="list">
       <li v-bind:key="index" v-for="(item, index) in  groups" class="" v-on:click="handlerGroupOpen(item)">
         <img class="img" src="cssjs/images/userimages/default.png" />
+        <div class="unread">{{item.unread}}</div>
         <div class="item">
           <div class="title">{{item.title}}</div>
-          <div class="msgText">Text....</div>
-          <div class="msgTime">17:34</div>
+          <div class="msgText text-grey text-small">{{item.lastMsgText}}</div>
+          <div class="msgTime text-grey text-small">{{item.lastMsgTime}}</div>
         </div>
       </li>
     </ul>
+    <ul v-else class="list">
+      <li>
+        <div v-on:click="handlerNew">Neue Gruppe anlegen</div>
+      </li>
+    </ul>
+
 
   </div>
 </template>
@@ -38,7 +45,7 @@ export default {
   methods: {
 
     handlerNew: function () {
-      this.$emit('showGroupForm', {} )
+      this.$emit('showGroupForm', {members:[]} )
     },
 
     handlerGroupOpen: function (item) {

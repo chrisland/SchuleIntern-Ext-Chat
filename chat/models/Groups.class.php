@@ -60,6 +60,41 @@ class extChatModelGroups
     public function getLastMsgTime() {
         return $this->data['lastMsgTime'];
     }
+    public function getLastMsgTimeHuman() {
+        return date('d.m.Y', $this->data['lastMsgTime']);
+    }
+    public function getLastMsg() {
+        return $this->data['lastMsg'];
+    }
+    public function getUnread() {
+        return $this->data['unread'];
+    }
+
+    public function getLastMsgShort($length = 50) {
+
+        if ($this->data['lastMsg']) {
+            $message = extChatModelChat::getByID($this->data['lastMsg']);
+            if ($message) {
+                return $message->getMsgShort($length);
+            }
+        }
+        return '';
+    }
+
+    public function setLastMsg($msgObj) {
+        if (!$msgObj) {
+            return false;
+        }
+
+        if ( DB::getDB()->query("UPDATE ext_chat_groups SET 
+                           lastMsgTime=".$msgObj->getTimeCreate().", 
+                           lastMsg=".$msgObj->getID()."
+                           WHERE id = ".$this->getID() ) )  {
+            return true;
+        }
+        return false;
+
+    }
 
     public function getMembers() {
         if (!$this->members && $this->getID() ) {
@@ -67,6 +102,50 @@ class extChatModelGroups
         }
         return $this->members;
     }
+    public function setMembers($data) {
+
+        if (!$data || !is_array($data)) {
+            return false;
+        }
+
+        $members = $this->getMembers();
+
+        foreach($members as $key => $member) {
+
+            if ( in_array($member->getID(), $data) ) {
+                //nothing
+                //echo 'nothing '.$member->getID();
+                unset($data[ array_search($member->getID(), $data) ]);
+            } else {
+                //remove
+                //echo 'remove '.$member->getID();
+                $member->removeGroup($this->getID());
+            }
+        }
+        if (count($data) > 0) {
+            foreach ($data as $item) {
+                // add
+                //echo 'add '.$item;
+                $newMember = new extChatModelMember(['user_id' => $item]);
+                $newMember->addGroup($this->getID());
+            }
+        }
+
+        return true;
+    }
+    public function isMembers($user_id) {
+        if (!$user_id) {
+            return false;
+        }
+        $members = $this->getMembers();
+        foreach($members as $member) {
+            if ($member->getID() == $user_id) {
+                return $member;
+            }
+        }
+        return false;
+    }
+
     public function getMembersCollection() {
         $items = $this->getMembers();
         $collection = [];
@@ -80,7 +159,7 @@ class extChatModelGroups
             return false;
         }
         $items =  [];
-        $dataSQL = DB::getDB()->query("SELECT userChat_id as user_id FROM ext_chat_groups_member WHERE group_id = ".(int)$id);
+        $dataSQL = DB::getDB()->query("SELECT user_id as user_id FROM ext_chat_groups_member WHERE group_id = ".(int)$id);
         while ($data = DB::getDB()->fetch_array($dataSQL, true)) {
             $items[] = new extChatModelMember($data);
         }
@@ -114,6 +193,25 @@ class extChatModelGroups
         return $items;
     }
 
+    public function setUnread($msg) {
+
+        $members = $this->getMembers();
+        foreach($members as $key => $member) {
+            $member->setUnread($msg);
+        }
+        return true;
+    }
+
+    public function unsetUnread($int = 0) {
+        $user = DB::getSession()->getUser();
+        $members = $this->getMembers();
+        foreach($members as $key => $member) {
+            if ($member->getID() == $user->getUserID()) {
+                $member->unsetUnread($this->getID($int));
+            }
+        }
+        return true;
+    }
 
     /**
      * @return Array[]
@@ -126,17 +224,16 @@ class extChatModelGroups
         $user = DB::getSession()->getUser();
 
         $orderBy = 'b.lastMsgTime, b.id DESC';
-        $where = ' WHERE a.userChat_id = "'.$user->getUserID().'"';
+        $where = ' WHERE a.user_id = "'.$user->getUserID().'"';
         if ($status) {
             $where .= 'b.status = "'.$status.'"';
         }
         $ret =  [];
 
-        $dataSQL = DB::getDB()->query("SELECT a.userChat_id , b.id, b.title, b.lastMsgTime, b.status
+        $dataSQL = DB::getDB()->query("SELECT a.user_id, a.unread, b.id, b.title, b.lastMsgTime, b.status, b.lastMsg
             FROM ext_chat_groups_member as a
 			LEFT JOIN ext_chat_groups AS b ON a.group_id LIKE b.id 
-            
-			".$where." GROUP BY b.id ORDER BY ".$orderBy. " ");
+			".$where."  ORDER BY ".$orderBy. " "); // GROUP BY b.id
 
 
         //$dataSQL = DB::getDB()->query("SELECT * FROM ext_chat_groups ".$where);
@@ -154,9 +251,9 @@ class extChatModelGroups
 
         $user = DB::getSession()->getUser();
 
-        $where = ' WHERE a.group_id = '.$id.' AND a.userChat_id = "'.$user->getUserID().'"';
+        $where = ' WHERE a.group_id = '.$id.' AND a.user_id = "'.$user->getUserID().'"';
 
-        $dataSQL = DB::getDB()->query("SELECT a.userChat_id , b.id, b.title, b.lastMsgtime, b.status
+        $dataSQL = DB::getDB()->query("SELECT a.user_id , b.id, b.title, b.lastMsgtime, b.status
             FROM ext_chat_groups_member as a
 			LEFT JOIN ext_chat_groups AS b ON a.group_id LIKE b.id 
 			".$where);

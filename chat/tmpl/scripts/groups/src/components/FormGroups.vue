@@ -9,14 +9,15 @@
       <ul>
         <li>
           <label>Name</label>
-          <input type="text" v-model="form.title">
+          <input type="text" v-model="formData.title">
         </li>
         <li>
           <label>Mitglieder</label>
 
           <ul>
-            <li v-bind:key="index" v-for="(item, index) in  form.members" class="">
+            <li v-bind:key="index" v-for="(item, index) in  formData.members" class="user">
               <User v-if="item" v-bind:data="item"></User>
+              <button class="si-btn si-btn-light remove margin-l-m" v-on:click="handlerUserRemove(item)"><i class="fas fa-trash"></i></button>
             </li>
             <li>
               <UserSelect @submit="handlerSubmitUser"></UserSelect>
@@ -51,15 +52,23 @@ export default {
     };
   },
   props: {
-    form: Object
+    formData: Object
   },
   created: function () {
 
   },
   methods: {
 
+    handlerUserRemove: function (user) {
+      var that = this;
+      this.formData.members.forEach(function (o, i) {
+        if (o.id == user.id) {
+          that.formData.members.splice(i, 1);
+        }
+      });
+    },
     handlerSubmitUser: function (userlist) {
-      this.form.members = [...this.form.members, ...userlist];
+      this.formData.members = [...this.formData.members, ...userlist];
     },
     handlerBack: function () {
 
@@ -67,7 +76,7 @@ export default {
     },
     handlerSubmit: function () {
 
-      this.$emit('formSubmitGroup', this.form)
+      this.$emit('formSubmitGroup', this.formData)
     }
 
   }
@@ -77,4 +86,10 @@ export default {
 
 <style scoped>
 
+.user {
+  flex-direction: row;
+}
+.user .remove {
+  display: inline-block;
+}
 </style>

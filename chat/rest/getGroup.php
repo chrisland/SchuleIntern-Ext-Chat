@@ -22,6 +22,7 @@ class getGroup extends AbstractRest {
         $item = extChatModelGroups::getMyByID($group_id);
 
         if ($item) {
+            $item->unsetUnread(0);
             $ret = [
                 "id" => $item->getID(),
                 "title" => $item->getTitle(),
