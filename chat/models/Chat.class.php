@@ -79,15 +79,15 @@ class extChatModelChat
     public function getFrom() {
         $user = DB::getSession()->getUser();
         if ($user->getUserID() && $user->getUserID() == $this->getUserID() ) {
-            return true;
+            return $user->getUserID();
         } else {
-            return $this->getMember()->getCollection();
+            return $this->getMember()->getID();
         }
     }
 
     public function getCollection() {
         $collection = [
-            "id" => $this->getID(),
+            //"id" => $this->getID(),
             "from" => $this->getFrom(),
             "msg" => nl2br((string)$this->getMsg()),
             "timeCreate" => date("d.m.Y H:i", $this->getTimeCreate() )

@@ -56,6 +56,10 @@ export default {
 
     var that = this;
 
+
+
+
+/*
     this.interval = setInterval(function () {
 
       if(that.group.id) {
@@ -81,7 +85,7 @@ export default {
 
     }, 5000);
 
-
+*/
 
   },
   updated() {

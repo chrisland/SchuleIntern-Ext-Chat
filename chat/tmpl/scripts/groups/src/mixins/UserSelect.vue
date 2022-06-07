@@ -7,7 +7,7 @@
     </div>
 
     <div v-if="state == 'form'">
-      <div class="si-userselect-modal" v-on:click.self="handlerCloseForm">
+      <div class="si-userselect-modal" style="top:0;left:0;" v-on:click.self="handlerCloseForm">
         <div class="si-userselect-modal-box" >
           <div class="si-userselect-modal-content">
 
@@ -15,7 +15,6 @@
               <li v-bind:key="index" v-for="(item, index) in  users" v-on:click="handlerSelectUser(item)">
                 <div class="vorname">{{item.vorname}}</div>
                 <div class="nachname">{{item.nachname}}</div>
-
               </li>
             </ul>
 
@@ -59,7 +58,7 @@ export default {
       state: false,
       searchString: '',
 
-      users: false,
+      users: [],
       selected: []
     };
   },
@@ -81,6 +80,7 @@ export default {
 
       this.loading = true;
       var that = this;
+      that.users = false;
       axios.get( 'rest.php/GetUser/'+this.searchString)
       .then(function(response){
         if ( response.data ) {
@@ -120,5 +120,9 @@ export default {
 .list {
   height: 40vh;
   overflow-y: auto;
+}
+
+.si-form {
+  flex: 2;
 }
 </style>

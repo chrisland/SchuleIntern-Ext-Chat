@@ -53,13 +53,35 @@ export default {
         msg: ''
       },
 
-      groupForm: false
+      groupForm: false,
+
+      conn: false
 
     };
   },
   created: function () {
 
     this.loadGroups();
+
+
+    this.conn = new WebSocket('wss://rg-intern.de:8080');
+    this.conn.onopen = function(e) {
+      console.log("Connection established!");
+    };
+
+    var that = this;
+    this.conn.onmessage = function(e) {
+      console.log('get:',e);
+      //console.log(that.group.chat);
+      let data = JSON.parse(e.data);
+      console.log(data);
+      that.group.chat.push({
+        from: data.from,
+        msg: data.msg
+      });
+    };
+
+console.log(this.conn);
 
   },
   mounted() {
@@ -141,7 +163,15 @@ export default {
           if (!response.data.error) {
             that.group = response.data;
             that.route = 'chat';
-            console.log('---chat');
+
+
+
+            that.conn.send('ok');
+
+            console.log( {'room': this.group.id, 'task': 'enter'} );
+            console.log('---chat' );
+
+
           } else {
             that.error = ''+response.data.msg;
           }
@@ -191,6 +221,13 @@ export default {
       if (!this.group.id || !form.msg) {
         return false;
       }
+      //console.log('send:',this.group.id+'#'+form.msg);
+
+
+      this.conn.send(this.group.id+'#'+form.msg);
+
+
+
       const formData = new FormData();
       formData.append('group_id', this.group.id);
       formData.append('msg', form.msg);
@@ -228,6 +265,7 @@ export default {
         // always executed
         that.loading = false;
       });
+
 
     },
     handlerChatClose: function () {
